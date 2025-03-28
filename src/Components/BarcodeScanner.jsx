@@ -1,34 +1,28 @@
 import React, { useState, useEffect, useRef } from "react";
-import { BarcodeScanner as BarcodeScannerComponent } from "react-barcode-scanner";
+import {BarcodeScanner as BarcodeScannerComponent} from "react-barcode-scanner";
 
 const BarcodeScanner = () => {
   const [data, setData] = useState("No barcode scanned yet");
   const [hasPermission, setHasPermission] = useState(null);
   const [isScanning, setIsScanning] = useState(false);
-  const videoRef = useRef(null);
 
   useEffect(() => {
     navigator.mediaDevices
       .getUserMedia({ video: { facingMode: "environment" } })
-      .then((stream) => {
-        setHasPermission(true);
-        if (videoRef.current) {
-          videoRef.current.srcObject = stream;
-        }
-
-        // Try to manually set focus after the camera starts
-        const track = stream.getVideoTracks()[0];
-        if (track?.applyConstraints) {
-          track.applyConstraints({
-            advanced: [{ focusMode: "continuous" }, { zoom: 2 }],
-          }).catch(err => console.warn("Focus constraints not supported:", err));
-        }
-      })
+      .then(() => setHasPermission(true))
       .catch(() => setHasPermission(false));
   }, []);
 
   const handleScanToggle = () => {
     setIsScanning((prev) => !prev);
+  };
+
+  // Adding a timeout to ensure the scanner stays active
+  const handleScan = (err, result) => {
+    if (result) {
+      setData(result.text);
+      setIsScanning(false); // Stop scanning after successful scan
+    }
   };
 
   return (
@@ -41,20 +35,14 @@ const BarcodeScanner = () => {
       {hasPermission && (
         <>
           {isScanning && (
-            <>
-              <video ref={videoRef} autoPlay playsInline width="500" height="500" style={{ display: "none" }} />
-              <BarcodeScannerComponent
-                width={500}
-                height={500}
-                onUpdate={(err, result) => {
-                  if (result) {
-                    setData(result.text);
-                    setIsScanning(false);
-                  }
-                }}
-                videoConstraints={{ facingMode: "environment" }}
-              />
-            </>
+            <BarcodeScannerComponent
+              width={500}
+              height={500}
+              onUpdate={handleScan}
+              videoConstraints={{ facingMode: "environment" }} // Use back camera
+              // Adjust the scan interval or delay (Optional if needed)
+              interval={500} // Add a small delay to check every 500ms
+            />
           )}
 
           <button
