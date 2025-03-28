@@ -14,6 +14,7 @@ const BarcodeScanner = () => {
     navigator.mediaDevices
       .getUserMedia({ video: { facingMode: "environment" } })
       .then((stream) => {
+        console.log("Camera stream:", stream); // Log the media stream
         setHasPermission(true);
         if (videoRef.current) {
           videoRef.current.srcObject = stream;
@@ -88,6 +89,7 @@ const BarcodeScanner = () => {
               display: "block", // Ensures it's not hidden
               marginLeft: "auto", // Center the video
               marginRight: "auto", // Center the video
+              backgroundColor: "gray", // Temporary background color to debug visibility
             }}
           />
           {/* Hidden canvas to process the video feed for barcode scanning */}
