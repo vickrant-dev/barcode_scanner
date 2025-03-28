@@ -32,9 +32,9 @@ const BarcodeScanner = () => {
         if (video.readyState === video.HAVE_ENOUGH_DATA) {
           canvas.height = video.videoHeight;
           canvas.width = video.videoWidth;
-          ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+          ctx.drawImage(video, 100, 100, canvas.width, canvas.height);
 
-          const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+          const imageData = ctx.getImageData(100, 100, canvas.width, canvas.height);
           const code = jsQR(imageData.data, canvas.width, canvas.height, {
             inversionAttempts: "dontInvert",
           });
