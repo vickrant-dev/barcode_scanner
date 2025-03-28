@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import jsQR from "jsqr"; // Import jsQR library for barcode scanning
+import jsQR from "jsqr"; // Import jsQR for barcode scanning
 
 const BarcodeScanner = () => {
   const [data, setData] = useState("No barcode scanned yet");
@@ -19,7 +19,10 @@ const BarcodeScanner = () => {
         }
         startScanning();
       })
-      .catch(() => setHasPermission(false));
+      .catch((err) => {
+        console.error("Camera permission error: ", err);
+        setHasPermission(false);
+      });
   }, []);
 
   const startScanning = () => {
@@ -32,9 +35,9 @@ const BarcodeScanner = () => {
         if (video.readyState === video.HAVE_ENOUGH_DATA) {
           canvas.height = video.videoHeight;
           canvas.width = video.videoWidth;
-          ctx.drawImage(video, 100, 100, canvas.width, canvas.height);
+          ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
 
-          const imageData = ctx.getImageData(100, 100, canvas.width, canvas.height);
+          const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
           const code = jsQR(imageData.data, canvas.width, canvas.height, {
             inversionAttempts: "dontInvert",
           });
@@ -72,11 +75,14 @@ const BarcodeScanner = () => {
             ref={videoRef}
             autoPlay
             playsInline
-            width="500"
-            height="500"
+            width="100%" // Make it responsive, full width
+            height="auto" // Adjust height proportionally
             style={{
-              border: "2px solid black", // You can adjust this style as needed
+              border: "2px solid black", // Border to make it visible
               marginTop: "20px", // Space above the video
+              display: "block", // Ensures it's not hidden
+              marginLeft: "auto", // Center the video
+              marginRight: "auto", // Center the video
             }}
           />
 
