@@ -1,18 +1,22 @@
 import React, { useState, useEffect } from "react";
-import { BarcodeScanner as BarcodeScannerComponent } from "react-barcode-scanner";
+import BarcodeScannerComponent from "react-qr-barcode-scanner";
 
 const BarcodeScanner = () => {
   const [data, setData] = useState("No barcode scanned yet");
   const [hasPermission, setHasPermission] = useState(null);
   const [isScanning, setIsScanning] = useState(false);
+  const [videoConstraints, setVideoConstraints] = useState({
+    facingMode: "environment",
+    focusMode: "continuous",
+    advanced: [{ zoom: 2 }] // Adjust zoom for better focus
+  });
 
   useEffect(() => {
-    // Request camera permission with back camera
     navigator.mediaDevices
-      .getUserMedia({ video: { facingMode: "environment" } })
+      .getUserMedia({ video: videoConstraints })
       .then(() => setHasPermission(true))
       .catch(() => setHasPermission(false));
-  }, []);
+  }, [videoConstraints]);
 
   const handleScanToggle = () => {
     setIsScanning((prev) => !prev);
@@ -34,10 +38,10 @@ const BarcodeScanner = () => {
               onUpdate={(err, result) => {
                 if (result) {
                   setData(result.text);
-                  setIsScanning(false); // Stop scanning after success
+                  setIsScanning(false);
                 }
               }}
-              videoConstraints={{ facingMode: "environment" }} // Force back camera
+              videoConstraints={videoConstraints} // Apply focus fix
             />
           )}
 
