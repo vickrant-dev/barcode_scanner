@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import jsQR from "jsqr"; // Import the jsQR library for barcode/QR scanning
+import jsQR from "jsqr"; // Import jsQR library for barcode scanning
 
 const BarcodeScanner = () => {
   const [data, setData] = useState("No barcode scanned yet");
@@ -67,16 +67,21 @@ const BarcodeScanner = () => {
 
       {hasPermission && (
         <>
+          {/* Display the video feed for the camera */}
           <video
             ref={videoRef}
             autoPlay
             playsInline
             width="500"
             height="500"
-            style={{ display: "none" }} // We hide the video element since we're drawing it on canvas
+            style={{
+              border: "2px solid black", // You can adjust this style as needed
+              marginTop: "20px", // Space above the video
+            }}
           />
 
-          <canvas ref={canvasRef} style={{ display: "none" }} /> {/* Invisible canvas to process the video frame */}
+          {/* Hidden canvas to process the video feed for barcode scanning */}
+          <canvas ref={canvasRef} style={{ display: "none" }} />
 
           {isScanning && (
             <>
