@@ -5,18 +5,27 @@ const BarcodeScanner = () => {
   const [data, setData] = useState("No barcode scanned yet");
   const [hasPermission, setHasPermission] = useState(null);
   const [isScanning, setIsScanning] = useState(false);
-  const [videoConstraints, setVideoConstraints] = useState({
-    facingMode: "environment",
-    focusMode: "continuous",
-    advanced: [{ zoom: 2 }] // Adjust zoom for better focus
-  });
+  const videoRef = useRef(null);
 
   useEffect(() => {
     navigator.mediaDevices
-      .getUserMedia({ video: videoConstraints })
-      .then(() => setHasPermission(true))
+      .getUserMedia({ video: { facingMode: "environment" } })
+      .then((stream) => {
+        setHasPermission(true);
+        if (videoRef.current) {
+          videoRef.current.srcObject = stream;
+        }
+
+        // Try to manually set focus after the camera starts
+        const track = stream.getVideoTracks()[0];
+        if (track?.applyConstraints) {
+          track.applyConstraints({
+            advanced: [{ focusMode: "continuous" }, { zoom: 2 }],
+          }).catch(err => console.warn("Focus constraints not supported:", err));
+        }
+      })
       .catch(() => setHasPermission(false));
-  }, [videoConstraints]);
+  }, []);
 
   const handleScanToggle = () => {
     setIsScanning((prev) => !prev);
@@ -32,17 +41,20 @@ const BarcodeScanner = () => {
       {hasPermission && (
         <>
           {isScanning && (
-            <BarcodeScannerComponent
-              width={500}
-              height={500}
-              onUpdate={(err, result) => {
-                if (result) {
-                  setData(result.text);
-                  setIsScanning(false);
-                }
-              }}
-              videoConstraints={videoConstraints} // Apply focus fix
-            />
+            <>
+              <video ref={videoRef} autoPlay playsInline width="500" height="500" style={{ display: "none" }} />
+              <BarcodeScannerComponent
+                width={500}
+                height={500}
+                onUpdate={(err, result) => {
+                  if (result) {
+                    setData(result.text);
+                    setIsScanning(false);
+                  }
+                }}
+                videoConstraints={{ facingMode: "environment" }}
+              />
+            </>
           )}
 
           <button
