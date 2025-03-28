@@ -1,14 +1,13 @@
 import React, { useState, useEffect, useRef } from "react";
-import jsQR from "jsqr"; // Import jsQR for barcode scanning
+import jsQR from "jsqr";
 
 const BarcodeScanner = () => {
   const [data, setData] = useState("No barcode scanned yet");
   const [isScanning, setIsScanning] = useState(false);
   const videoRef = useRef(null);
-  const canvasRef = useRef(null); // Used to draw video frame for scanning
+  const canvasRef = useRef(null);
 
   useEffect(() => {
-    // Attempt to get the user's media stream (camera)
     navigator.mediaDevices
       .getUserMedia({ video: { facingMode: "environment" } })
       .then((stream) => {
@@ -33,26 +32,18 @@ const BarcodeScanner = () => {
           canvas.height = video.videoHeight;
           canvas.width = video.videoWidth;
 
-          // Optional: Resize canvas to improve performance and scanning accuracy
-          const scaleFactor = 0.5; // Scale down the video for better recognition
-          const width = canvas.width * scaleFactor;
-          const height = canvas.height * scaleFactor;
+          ctx.drawImage(video, 0, 0, canvas.width, canvas.height); // Draw without scaling
 
-          ctx.drawImage(video, 0, 0, width, height); // Scale the video frame
+          const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
 
-          const imageData = ctx.getImageData(0, 0, width, height);
-          
-          // Log the image data to see if it's getting the correct pixels
-          console.log("imageData", imageData);
-
-          const code = jsQR(imageData.data, width, height, {
+          const code = jsQR(imageData.data, canvas.width, canvas.height, {
             inversionAttempts: "dontInvert",
           });
 
           if (code) {
-            setData(code.data); // Set the scanned barcode data
-            setIsScanning(false); // Stop scanning after success
-            console.log("Barcode found:", code.data); // Log found barcode
+            setData(code.data);
+            setIsScanning(false);
+            console.log("Barcode found:", code.data);
           }
         }
 
@@ -61,7 +52,7 @@ const BarcodeScanner = () => {
         }
       };
 
-      scanFrame(); // Start scanning loop
+      scanFrame();
     }
   };
 
@@ -69,9 +60,8 @@ const BarcodeScanner = () => {
     setIsScanning((prev) => !prev);
   };
 
-  // Adding touch support for mobile
   const handleTouchStart = (e) => {
-    e.preventDefault(); // Prevents the page from zooming or scrolling
+    e.preventDefault();
     if (!isScanning) {
       handleScanToggle();
     }
@@ -95,25 +85,23 @@ const BarcodeScanner = () => {
         )}
       </div>
 
-      {/* Display the video feed for the camera */}
       <video
         ref={videoRef}
         autoPlay
         playsInline
-        width="100%" // Make it responsive, full width
-        height="auto" // Adjust height proportionally
+        width="100%"
+        height="auto"
         style={{
-          border: "2px solid black", // Border to make it visible
-          marginTop: "20px", // Space above the video
-          display: "block", // Ensures it's not hidden
-          marginLeft: "auto", // Center the video
-          marginRight: "auto", // Center the video
-          backgroundColor: "gray", // Temporary background color to debug visibility
+          border: "2px solid black",
+          marginTop: "20px",
+          display: "block",
+          marginLeft: "auto",
+          marginRight: "auto",
+          backgroundColor: "gray",
         }}
-        onTouchStart={handleTouchStart} // Mobile touch support
+        onTouchStart={handleTouchStart}
       />
 
-      {/* Hidden canvas to process the video feed for barcode scanning */}
       <canvas ref={canvasRef} style={{ display: "none" }} />
 
       <h3>Scanned Code: {data}</h3>
