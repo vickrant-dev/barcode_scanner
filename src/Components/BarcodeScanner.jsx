@@ -3,29 +3,22 @@ import jsQR from "jsqr"; // Import jsQR for barcode scanning
 
 const BarcodeScanner = () => {
   const [data, setData] = useState("No barcode scanned yet");
-  const [hasPermission, setHasPermission] = useState(null);
   const [isScanning, setIsScanning] = useState(false);
   const videoRef = useRef(null);
   const canvasRef = useRef(null); // Used to draw video frame for scanning
-  const [error, setError] = useState(null); // Track error state
 
   useEffect(() => {
     // Attempt to get the user's media stream (camera)
     navigator.mediaDevices
       .getUserMedia({ video: { facingMode: "environment" } })
       .then((stream) => {
-        console.log("Camera stream:", stream); // Log the media stream
-        setHasPermission(true);
         if (videoRef.current) {
           videoRef.current.srcObject = stream;
         }
-        console.log("Camera stream started");
         startScanning();
       })
       .catch((err) => {
         console.error("Error accessing camera:", err);
-        setHasPermission(false);
-        setError("Error accessing the camera.");
       });
   }, []);
 
@@ -65,57 +58,52 @@ const BarcodeScanner = () => {
     setIsScanning((prev) => !prev);
   };
 
+  // Adding touch support for mobile
+  const handleTouchStart = (e) => {
+    e.preventDefault(); // Prevents the page from zooming or scrolling
+    if (!isScanning) {
+      handleScanToggle();
+    }
+  };
+
   return (
     <div style={{ textAlign: "center", marginTop: "50px" }}>
       <h2>Barcode Scanner</h2>
 
-      {hasPermission === null && <p>Requesting camera access...</p>}
-      {hasPermission === false && (
-        <p>{error || "Camera access denied. Please enable it in your browser settings."}</p>
-      )}
+      <div
+        style={{
+          marginBottom: "20px",
+          backgroundColor: "gray",
+          padding: "10px",
+        }}
+      >
+        {isScanning ? (
+          <p>Scanning in progress...</p>
+        ) : (
+          <p>Tap the camera feed to start scanning</p>
+        )}
+      </div>
 
-      {hasPermission && (
-        <>
-          {/* Display the video feed for the camera */}
-          <video
-            ref={videoRef}
-            autoPlay
-            playsInline
-            width="100%" // Make it responsive, full width
-            height="auto" // Adjust height proportionally
-            style={{
-              border: "2px solid black", // Border to make it visible
-              marginTop: "20px", // Space above the video
-              display: "block", // Ensures it's not hidden
-              marginLeft: "auto", // Center the video
-              marginRight: "auto", // Center the video
-              backgroundColor: "gray", // Temporary background color to debug visibility
-            }}
-          />
-          {/* Hidden canvas to process the video feed for barcode scanning */}
-          <canvas ref={canvasRef} style={{ display: "none" }} />
+      {/* Display the video feed for the camera */}
+      <video
+        ref={videoRef}
+        autoPlay
+        playsInline
+        width="100%" // Make it responsive, full width
+        height="auto" // Adjust height proportionally
+        style={{
+          border: "2px solid black", // Border to make it visible
+          marginTop: "20px", // Space above the video
+          display: "block", // Ensures it's not hidden
+          marginLeft: "auto", // Center the video
+          marginRight: "auto", // Center the video
+          backgroundColor: "gray", // Temporary background color to debug visibility
+        }}
+        onTouchStart={handleTouchStart} // Mobile touch support
+      />
 
-          {isScanning && (
-            <>
-              <button
-                onClick={handleScanToggle}
-                style={{ marginTop: "20px", padding: "10px 20px", fontSize: "16px" }}
-              >
-                Stop Scanning
-              </button>
-            </>
-          )}
-
-          {!isScanning && (
-            <button
-              onClick={handleScanToggle}
-              style={{ marginTop: "20px", padding: "10px 20px", fontSize: "16px" }}
-            >
-              Start Scanning
-            </button>
-          )}
-        </>
-      )}
+      {/* Hidden canvas to process the video feed for barcode scanning */}
+      <canvas ref={canvasRef} style={{ display: "none" }} />
 
       <h3>Scanned Code: {data}</h3>
     </div>
