@@ -7,9 +7,10 @@ const BarcodeScanner = () => {
   const [isScanning, setIsScanning] = useState(false);
   const videoRef = useRef(null);
   const canvasRef = useRef(null); // Used to draw video frame for scanning
+  const [error, setError] = useState(null); // Track error state
 
   useEffect(() => {
-    // Get camera permissions and setup video stream
+    // Attempt to get the user's media stream (camera)
     navigator.mediaDevices
       .getUserMedia({ video: { facingMode: "environment" } })
       .then((stream) => {
@@ -17,11 +18,13 @@ const BarcodeScanner = () => {
         if (videoRef.current) {
           videoRef.current.srcObject = stream;
         }
+        console.log("Camera stream started");
         startScanning();
       })
       .catch((err) => {
-        console.error("Camera permission error: ", err);
+        console.error("Error accessing camera:", err);
         setHasPermission(false);
+        setError("Error accessing the camera.");
       });
   }, []);
 
@@ -66,7 +69,9 @@ const BarcodeScanner = () => {
       <h2>Barcode Scanner</h2>
 
       {hasPermission === null && <p>Requesting camera access...</p>}
-      {hasPermission === false && <p>Camera access denied. Please enable it in your browser settings.</p>}
+      {hasPermission === false && (
+        <p>{error || "Camera access denied. Please enable it in your browser settings."}</p>
+      )}
 
       {hasPermission && (
         <>
@@ -85,7 +90,6 @@ const BarcodeScanner = () => {
               marginRight: "auto", // Center the video
             }}
           />
-
           {/* Hidden canvas to process the video feed for barcode scanning */}
           <canvas ref={canvasRef} style={{ display: "none" }} />
 
