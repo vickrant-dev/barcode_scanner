@@ -32,16 +32,27 @@ const BarcodeScanner = () => {
         if (video.readyState === video.HAVE_ENOUGH_DATA) {
           canvas.height = video.videoHeight;
           canvas.width = video.videoWidth;
-          ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
 
-          const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-          const code = jsQR(imageData.data, canvas.width, canvas.height, {
+          // Optional: Resize canvas to improve performance and scanning accuracy
+          const scaleFactor = 0.5; // Scale down the video for better recognition
+          const width = canvas.width * scaleFactor;
+          const height = canvas.height * scaleFactor;
+
+          ctx.drawImage(video, 0, 0, width, height); // Scale the video frame
+
+          const imageData = ctx.getImageData(0, 0, width, height);
+          
+          // Log the image data to see if it's getting the correct pixels
+          console.log("imageData", imageData);
+
+          const code = jsQR(imageData.data, width, height, {
             inversionAttempts: "dontInvert",
           });
 
           if (code) {
             setData(code.data); // Set the scanned barcode data
             setIsScanning(false); // Stop scanning after success
+            console.log("Barcode found:", code.data); // Log found barcode
           }
         }
 
